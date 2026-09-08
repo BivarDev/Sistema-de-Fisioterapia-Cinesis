@@ -32,14 +32,36 @@ export interface PontoGrafico {
  * Gráfico de comparação longitudinal.
  *
  * Barras = escore funcional (eixo esquerdo, 0–100).
- * Linha  = dor EVA (eixo direito, 0–10).
+ * Linha  = dor EVA (eixo direito, 0–10, com a dor alta no topo).
  *
  * Os dois eixos juntos são o produto inteiro numa imagem: a barra subindo
  * enquanto a linha desce é a evolução que a especificação chama de tese central.
+ *
+ * ## O que mudou nesta versão, e por quê
+ *
+ * A primeira versão dava barras de mais de 100px de largura num plano de 8
+ * sessões, porque cada slot era `flex: 1` sobre a largura inteira do cartão.
+ * Barra mais larga do que alta não lê como valor, lê como bloco. Quatro
+ * correções:
+ *
+ * 1. **Largura da barra tem teto** (`LARGURA_MAX_BARRA`), e a área de plotagem
+ *    tem largura máxima proporcional ao número de sessões, centralizada. Um
+ *    plano de 4 sessões ocupa metade do cartão em vez de virar quatro lajes.
+ * 2. **Existe eixo.** Antes não dava para ler nenhum valor: nem o escore, nem a
+ *    dor. Agora há linhas de grade, rótulo nos dois eixos e o número em cima de
+ *    cada barra. Num gráfico clínico, "subiu" sem dizer quanto não sustenta
+ *    conduta.
+ * 3. **O gradiente foi invertido.** Ele clareava em direção ao topo, que é
+ *    justamente onde está o valor: a borda que o olho precisa medir era a parte
+ *    mais fraca da barra. Agora o topo é sólido e a base é que suaviza.
+ * 4. **Os pontos da linha eram elipses.** O SVG usa `preserveAspectRatio="none"`
+ *    para a linha acompanhar o eixo X, e isso achatava os `<circle>`.
+ *    `vectorEffect` protege o traço, não a forma. Os pontos passaram a ser
+ *    elementos HTML posicionados, que não distorcem.
  */
 export function GraficoLongitudinal({
   serie,
-  altura = 240,
+  altura = 260,
 }: {
   serie: PontoGrafico[];
   altura?: number;
@@ -65,108 +87,267 @@ export function GraficoLongitudinal({
     );
   }
 
-  const larguraViewBox = 100;
-  const alturaViewBox = 40;
-  // Espaço entre barras: 22% da largura de cada slot.
-  const passo = larguraViewBox / serie.length;
+  // --- Medidas do desenho ---------------------------------------------------
+  /** Faixa acima da plotagem, onde vai o número de cada barra. */
+  const ALTURA_VALOR = 20;
+  /** Faixa abaixo da plotagem, onde vai o rótulo da sessão. */
+  const ALTURA_ROTULO = 24;
+  /** Teto da barra. Acima disso ela deixa de parecer uma medida. */
+  const LARGURA_MAX_BARRA = 46;
+  /**
+   * Largura máxima de um slot. Multiplicada pelo número de sessões, define até
+   * onde a área de plotagem cresce; o resto vira margem simétrica. Sem isto, um
+   * plano curto espalha três barras por 1400px.
+   */
+  const LARGURA_MAX_SLOT = 92;
 
-  /** Converte EVA (0–10) na coordenada Y do viewBox (invertida). */
-  const yDaEva = (eva: number) => alturaViewBox - (eva / 10) * alturaViewBox * 0.9 - 2;
+  const alturaPlot = altura - ALTURA_VALOR - ALTURA_ROTULO;
 
+  /** Marcas do eixo esquerdo (escore) e do direito (dor). */
+  const MARCAS_ESCORE = [100, 75, 50, 25, 0];
+  const MARCAS_EVA = [10, 5, 0];
+
+  /** Escore (0–100) para distância do topo da plotagem, em px. */
+  const yDoEscore = (escore: number) => alturaPlot - (escore / 100) * alturaPlot;
+  /** EVA (0–10) para distância do topo. Dor alta no topo: descer = melhorar. */
+  const yDaEva = (eva: number) => alturaPlot - (eva / 10) * alturaPlot;
+
+  // A linha usa viewBox 0–100 nos dois eixos e é esticada no X pelo CSS.
+  const passo = 100 / serie.length;
   const pontosLinha = serie
-    .map((p, i) => `${i * passo + passo / 2},${yDaEva(p.eva)}`)
+    .map((p, i) => `${i * passo + passo / 2},${(yDaEva(p.eva) / alturaPlot) * 100}`)
     .join(' ');
+
+  const primeiro = serie[0];
+  const ultimo = serie[serie.length - 1];
 
   return (
     <div ref={ref}>
-      {/* Descrição textual completa, para leitor de tela. O SVG é decorativo
-          — quem não enxerga o gráfico recebe a mesma informação em palavras. */}
+      {/* Descrição textual completa, para leitor de tela. O desenho é
+          decorativo: quem não enxerga recebe a mesma informação em palavras. */}
       <p className="apenas-leitor-de-tela">
         Evolução ao longo de {serie.length} sessões. Escore funcional de{' '}
-        {serie[0]?.escore} a {serie[serie.length - 1]?.escore} em 100. Dor de{' '}
-        {serie[0]?.eva} a {serie[serie.length - 1]?.eva} em 10.
+        {primeiro?.escore} a {ultimo?.escore} em 100. Dor de {primeiro?.eva} a{' '}
+        {ultimo?.eva} em 10.
       </p>
 
       <div
         aria-hidden="true"
         style={{
-          position: 'relative',
-          height: altura,
           display: 'flex',
-          alignItems: 'flex-end',
-          gap: 0,
+          alignItems: 'stretch',
+          gap: 10,
+          // Centraliza o conjunto quando a série é curta demais para o cartão.
+          maxWidth: serie.length * LARGURA_MAX_SLOT + 76,
+          margin: '0 auto',
         }}
       >
-        {/* Barras de escore funcional. */}
-        {serie.map((p, i) => (
-          <div
-            key={p.rotulo}
-            title={`${p.rotulo}: escore ${p.escore}, dor ${p.eva}`}
-            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-          >
-            <div
+        {/* --- Eixo esquerdo: escore funcional ------------------------------ */}
+        <div style={{ position: 'relative', width: 26, height: altura, flexShrink: 0 }}>
+          {MARCAS_ESCORE.map((v) => (
+            <span
+              key={v}
+              className="mono numero"
               style={{
-                width: '58%',
-                // No modo reduzido a barra já nasce na altura final.
-                height: visivel || reduzido ? `${(p.escore / 100) * (altura - 26)}px` : 0,
-                background: 'linear-gradient(to top, var(--pri), color-mix(in oklab, var(--pri) 38%, transparent))',
-                borderRadius: '6px 6px 0 0',
-                // A defasagem por barra dá o efeito de "crescimento" da série.
-                transition: `height var(--dur) var(--ease) ${i * 60}ms`,
+                position: 'absolute',
+                right: 0,
+                // -6px centra o texto na linha de grade em vez de pendurá-lo.
+                top: ALTURA_VALOR + yDoEscore(v) - 6,
+                fontSize: 9.5,
+                lineHeight: 1,
+                color: 'var(--ink3)',
+              }}
+            >
+              {v}
+            </span>
+          ))}
+        </div>
+
+        {/* --- Área de plotagem --------------------------------------------- */}
+        <div style={{ position: 'relative', flex: 1, height: altura, minWidth: 0 }}>
+          {/* Linhas de grade. A do zero é mais forte: é a base das barras. */}
+          {MARCAS_ESCORE.map((v) => (
+            <div
+              key={v}
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: ALTURA_VALOR + yDoEscore(v),
+                height: 1,
+                background: v === 0 ? 'var(--line2)' : 'var(--line)',
               }}
             />
-            <span className="mono" style={{ fontSize: 9.5, marginTop: 6 }}>
-              {p.rotulo}
-            </span>
-          </div>
-        ))}
+          ))}
 
-        {/* Linha de EVA sobreposta. */}
-        <svg
-          viewBox={`0 0 ${larguraViewBox} ${alturaViewBox}`}
-          preserveAspectRatio="none"
-          style={{
-            position: 'absolute',
-            inset: `0 0 26px 0`,
-            width: '100%',
-            height: `${altura - 26}px`,
-            pointerEvents: 'none',
-          }}
-        >
-          <polyline
-            points={pontosLinha}
-            fill="none"
-            stroke="var(--acc)"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            // Sem isto, o `preserveAspectRatio="none"` esticaria a espessura da
-            // linha junto com o eixo X e ela ficaria disforme.
-            vectorEffect="non-scaling-stroke"
+          {/* Barras de escore funcional. */}
+          <div
             style={{
-              opacity: visivel || reduzido ? 1 : 0,
-              transition: `opacity var(--dur) var(--ease) 300ms`,
+              position: 'absolute',
+              inset: `${ALTURA_VALOR}px 0 ${ALTURA_ROTULO}px 0`,
+              display: 'flex',
+              alignItems: 'flex-end',
             }}
-          />
-          {serie.map((p, i) => (
-            <circle
-              key={p.rotulo}
-              cx={i * passo + passo / 2}
-              cy={yDaEva(p.eva)}
-              r={0.9}
-              fill="var(--acc)"
+          >
+            {serie.map((p, i) => (
+              <div
+                key={p.rotulo}
+                title={`${p.rotulo}: escore ${p.escore} de 100, dor ${p.eva} de 10`}
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  height: '100%',
+                }}
+              >
+                {/* O valor, acima da barra. */}
+                <span
+                  className="numero"
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    lineHeight: 1,
+                    color: 'var(--ink2)',
+                    marginBottom: 5,
+                    opacity: visivel || reduzido ? 1 : 0,
+                    transition: `opacity var(--dur) var(--ease) ${300 + i * 60}ms`,
+                  }}
+                >
+                  {p.escore}
+                </span>
+                <div
+                  style={{
+                    width: '68%',
+                    maxWidth: LARGURA_MAX_BARRA,
+                    // No modo reduzido a barra já nasce na altura final.
+                    height: visivel || reduzido ? (p.escore / 100) * alturaPlot : 0,
+                    // Sólido no topo: a borda de cima é o valor que se lê.
+                    background:
+                      'linear-gradient(to bottom, var(--pri), color-mix(in oklab, var(--pri) 62%, transparent))',
+                    borderRadius: '5px 5px 0 0',
+                    // A defasagem por barra dá o efeito de crescimento da série.
+                    transition: `height var(--dur) var(--ease) ${i * 60}ms`,
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Rótulo de cada sessão, alinhado com a barra. */}
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: ALTURA_ROTULO,
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            {serie.map((p) => (
+              <span
+                key={p.rotulo}
+                className="mono"
+                style={{ flex: 1, textAlign: 'center', fontSize: 9.5, minWidth: 0 }}
+              >
+                {p.rotulo}
+              </span>
+            ))}
+          </div>
+
+          {/* Linha de EVA sobreposta. Só o traço vem do SVG. */}
+          <svg
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: ALTURA_VALOR,
+              width: '100%',
+              height: alturaPlot,
+              pointerEvents: 'none',
+              overflow: 'visible',
+            }}
+          >
+            <polyline
+              points={pontosLinha}
+              fill="none"
+              stroke="var(--acc)"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              // Sem isto, o `preserveAspectRatio="none"` esticaria a espessura
+              // da linha junto com o eixo X e ela ficaria disforme.
               vectorEffect="non-scaling-stroke"
               style={{
+                opacity: visivel || reduzido ? 1 : 0,
+                transition: `opacity var(--dur) var(--ease) 300ms`,
+              }}
+            />
+          </svg>
+
+          {/* Pontos da linha, em HTML. Dentro do SVG esticado eles virariam
+              elipses: `vectorEffect` protege o traço, não a forma do círculo. */}
+          {serie.map((p, i) => (
+            <div
+              key={p.rotulo}
+              title={`${p.rotulo}: dor ${p.eva} de 10`}
+              style={{
+                position: 'absolute',
+                left: `${((i + 0.5) / serie.length) * 100}%`,
+                top: ALTURA_VALOR + yDaEva(p.eva),
+                width: 7,
+                height: 7,
+                marginLeft: -3.5,
+                marginTop: -3.5,
+                borderRadius: '50%',
+                background: 'var(--acc)',
+                // Anel na cor do fundo: separa o ponto da barra por baixo dele.
+                boxShadow: '0 0 0 2px var(--surface)',
                 opacity: visivel || reduzido ? 1 : 0,
                 transition: `opacity var(--dur) var(--ease) ${300 + i * 40}ms`,
               }}
             />
           ))}
-        </svg>
+        </div>
+
+        {/* --- Eixo direito: dor EVA ---------------------------------------- */}
+        <div style={{ position: 'relative', width: 18, height: altura, flexShrink: 0 }}>
+          {MARCAS_EVA.map((v) => (
+            <span
+              key={v}
+              className="mono numero"
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: ALTURA_VALOR + yDaEva(v) - 6,
+                fontSize: 9.5,
+                lineHeight: 1,
+                color: 'var(--acc)',
+              }}
+            >
+              {v}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Legenda: a cor sozinha não diz qual série é qual. */}
-      <div style={{ display: 'flex', gap: 18, marginTop: 12, fontSize: 11.5 }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 18,
+          marginTop: 14,
+          fontSize: 11.5,
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        }}
+      >
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--ink2)' }}>
           <span
             style={{ width: 11, height: 11, borderRadius: 3, background: 'var(--pri)' }}
@@ -175,10 +356,7 @@ export function GraficoLongitudinal({
           Escore funcional (0–100, maior é melhor)
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--ink2)' }}>
-          <span
-            style={{ width: 11, height: 2, background: 'var(--acc)' }}
-            aria-hidden="true"
-          />
+          <span style={{ width: 11, height: 2, background: 'var(--acc)' }} aria-hidden="true" />
           Dor EVA (0–10, menor é melhor)
         </span>
       </div>
