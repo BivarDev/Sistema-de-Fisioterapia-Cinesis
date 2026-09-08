@@ -27,6 +27,7 @@ import {
   Revelar,
   type PontoGrafico,
 } from '@cinesis/ui';
+import { ROTULO_TIPO_REGISTRO, type TipoRegistro } from '@cinesis/shared';
 import { buscar } from '../api.js';
 import { Aviso } from './Hoje.js';
 
@@ -46,7 +47,14 @@ interface RegistroTimeline {
   assinadoPorCrefito: string | null;
 }
 
-/** Um teste funcional com seu delta. */
+/** Variação de um escore entre duas aplicações. */
+interface Delta {
+  valor: number;
+  direcao: 'melhora' | 'piora' | 'estavel';
+  percentual: number | null;
+}
+
+/** Um teste funcional, com o valor atual e as duas comparações. */
 interface TesteComDelta {
   chave: string;
   nome: string;
@@ -55,7 +63,13 @@ interface TesteComDelta {
   fonte: string;
   licenca: string;
   atual: number;
-  delta: { valor: number; direcao: 'melhora' | 'piora' | 'estavel'; percentual: number | null } | null;
+  /** Primeira aplicação deste teste no plano — a linha de base. */
+  inicial: number | null;
+  /** Variação desde a linha de base. É o número em destaque. */
+  delta: Delta | null;
+  /** Variação desde a sessão anterior. Contexto, não manchete. */
+  deltaSessaoAnterior: Delta | null;
+  aplicacoes: number;
 }
 
 /** Resposta de `GET /api/planos/:id`. */
@@ -207,21 +221,38 @@ export function Plano() {
 
                   <div>
                     {t.delta ? (
-                      // A cor sai da DIREÇÃO, não do sinal do número. Numa escala
-                      // invertida como a Oswestry, "+15" é piora — e aparece em
-                      // vermelho, como deve.
-                      <Pill
-                        tom={
-                          t.delta.direcao === 'melhora'
-                            ? 'good'
-                            : t.delta.direcao === 'piora'
-                              ? 'bad'
-                              : 'ink'
-                        }
-                      >
-                        {t.delta.valor > 0 ? '+' : ''}
-                        {t.delta.valor} · {t.delta.direcao}
-                      </Pill>
+                      <>
+                        {/*
+                          A cor sai da DIREÇÃO, não do sinal do número. Numa
+                          escala invertida como a Oswestry, "+15" é piora — e
+                          aparece em vermelho, como deve.
+                        */}
+                        <Pill
+                          tom={
+                            t.delta.direcao === 'melhora'
+                              ? 'good'
+                              : t.delta.direcao === 'piora'
+                                ? 'bad'
+                                : 'ink'
+                          }
+                        >
+                          {t.delta.valor > 0 ? '+' : ''}
+                          {t.delta.valor} · {t.delta.direcao}
+                        </Pill>
+
+                        {/*
+                          O contexto do número: desde quando, e a variação da
+                          última sessão. Sem isto, "-5 · melhora" não diz se a
+                          melhora foi no tratamento inteiro ou na última semana.
+                        */}
+                        <div className="mono" style={{ fontSize: 10, marginTop: 6 }}>
+                          desde a 1ª aplicação ({t.inicial} → {t.atual}) ·{' '}
+                          {t.aplicacoes} medições
+                          {t.deltaSessaoAnterior &&
+                            t.deltaSessaoAnterior.direcao !== 'estavel' &&
+                            ` · última sessão: ${t.deltaSessaoAnterior.valor > 0 ? '+' : ''}${t.deltaSessaoAnterior.valor}`}
+                        </div>
+                      </>
                     ) : (
                       <span className="mono">primeira aplicação</span>
                     )}
@@ -281,10 +312,14 @@ export function Plano() {
                           : r.tipo === 'reavaliacao'
                             ? 'var(--acc)'
                             : 'var(--ink2)',
-                      textTransform: 'capitalize',
                     }}
                   >
-                    {r.tipo}
+                    {/*
+                      O rótulo vem de `ROTULO_TIPO_REGISTRO`, não do valor cru.
+                      `capitalize` sobre `evolucao` mostraria "Evolucao" — o
+                      identificador do banco vazando para a tela.
+                    */}
+                    {ROTULO_TIPO_REGISTRO[r.tipo as TipoRegistro] ?? r.tipo}
                     {r.versao > 1 ? ` · v${r.versao}` : ''}
                   </div>
                   <div className="mono" style={{ fontSize: 10, marginTop: 3 }}>

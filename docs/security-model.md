@@ -434,7 +434,7 @@ percentual: autorização · isolamento entre tenants · imutabilidade e
 versionamento · auditoria · consentimento · cálculos clínicos · adesão ·
 autenticação do portal · upload e acesso a mídia · fluxos críticos.
 
-**224 testes** hoje: 100 na fundação de segurança, 75 no domínio clínico, 49 de
+**230 testes** hoje: 100 na fundação de segurança, 75 no domínio clínico, 55 de
 integração contra um PostgreSQL real com RLS e gatilhos ativos.
 
 Testar isolamento de tenant com mock é testar o mock — por isso os testes de

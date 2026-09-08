@@ -107,6 +107,23 @@ export interface PlanoTratamento {
 export type TipoRegistro = 'avaliacao' | 'evolucao' | 'reavaliacao' | 'prescricao';
 
 /**
+ * Rótulo legível de cada tipo de registro.
+ *
+ * Os valores do tipo são identificadores (sem acento, minúsculos) porque vão
+ * para o banco e para a API. Exibi-los direto na tela — mesmo com
+ * `text-transform: capitalize` — mostra "Evolucao" ao fisioterapeuta, o que é
+ * o identificador vazando para a interface.
+ *
+ * Fica aqui, e não no frontend, para que web e portal usem o mesmo texto.
+ */
+export const ROTULO_TIPO_REGISTRO: Record<TipoRegistro, string> = {
+  avaliacao: 'Avaliação',
+  evolucao: 'Evolução',
+  reavaliacao: 'Reavaliação',
+  prescricao: 'Prescrição',
+};
+
+/**
  * Um registro clínico na linha do tempo.
  *
  * `versao` + `substituiId` são o coração da imutabilidade exigida pela

@@ -135,7 +135,8 @@ const FASES = [
 ];
 
 export function Landing() {
-  const { tema, definirTema, movimento, definirMovimento } = usarPreferencias();
+  const { tema, temaEfetivo, definirTema, movimento, definirMovimento } =
+    usarPreferencias();
 
   // Rolagem suave só aqui. Dentro do sistema ela atrapalha: o profissional
   // quer que a lista pare onde ele soltou.
@@ -193,7 +194,10 @@ export function Landing() {
             />
             <Segmentado
               rotulo="Tema"
-              valor={tema === 'sistema' ? 'claro' : tema}
+              // Quando o tema segue o sistema, o seletor mostra o tema
+              // EFETIVO — nao 'claro' por padrao. Marcar "Claro" numa tela
+              // escura faz o usuario achar que o botao esta quebrado.
+              valor={tema === 'sistema' ? temaEfetivo : tema}
               aoMudar={definirTema}
               opcoes={[
                 { valor: 'claro', rotulo: 'Claro' },

@@ -1607,6 +1607,52 @@ describe('Superfície HTTP', () => {
     void s;
   });
 
+  it('aceita POST sem corpo com Content-Type JSON', async () => {
+    const s = await novaClinica('corpoVazio');
+    const p = await criarPaciente(s, 'Paciente Sem Corpo');
+
+    // Cliente HTTP comum (curl, Postman, script) manda o content-type mesmo
+    // sem corpo. O parser padrao do Fastify devolveria 500 nesse caso.
+    const r = await app.inject({
+      method: 'POST',
+      url: `/api/pacientes/${p.id}/link-portal`,
+      headers: { ...autenticado(s), 'content-type': 'application/json' },
+      payload: '',
+    });
+
+    expect(r.statusCode).toBe(200);
+    expect(r.json().url).toMatch(/\/entrar\//);
+  });
+
+  it('JSON malformado responde 400, nao 500', async () => {
+    const s = await novaClinica('jsonRuim');
+
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/pacientes',
+      headers: { ...autenticado(s), 'content-type': 'application/json' },
+      payload: '{ isto nao e json',
+    });
+
+    // Erro do cliente, nao falha do servidor.
+    expect(r.statusCode).toBe(400);
+  });
+
+  it('corpo vazio nao burla a validacao de campos obrigatorios', async () => {
+    const s = await novaClinica('vazioValida');
+
+    // O corpo vira `{}` — e o schema Zod recusa, com 422 e o detalhe por campo.
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/pacientes',
+      headers: { ...autenticado(s), 'content-type': 'application/json' },
+      payload: '',
+    });
+
+    expect(r.statusCode).toBe(422);
+    expect(Object.keys(r.json().campos)).toContain('nome');
+  });
+
   it('a resposta de erro nunca traz stack trace', async () => {
     const r = await app.inject({
       method: 'GET',

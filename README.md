@@ -168,7 +168,7 @@ instantâneo. O fundo 3D da apresentação nem é baixado.
 npm run dev        # API + sistema + portal, tudo junto
 npm run dev:api    # só a API
 npm run db:seed    # catálogo clínico e, fora de produção, a demonstração
-npm test           # 224 testes
+npm test           # 230 testes
 npm run typecheck
 npm run lint
 npm run check      # os três acima
@@ -200,13 +200,13 @@ Redis · React 19 · Vite · GSAP · Lenis · Three.js · Vitest.
 
 ## Testes
 
-**224 testes**, dirigidos por risco e não por percentual de cobertura:
+**230 testes**, dirigidos por risco e não por percentual de cobertura:
 
 | Suíte | Testes | O que cobre |
 |---|---|---|
 | `packages/security` | 100 | Cifragem, rotação de chave, pseudonimização, senha, sessão, CSRF, MFA, cadeia de auditoria, link mágico, redação, rate limit, upload, RBAC |
 | `packages/domain` | 75 | Imutabilidade, motor de testes clínicos, série longitudinal, adesão, governança da biblioteca, consentimento, eventos |
-| `apps/api` | 49 | Integração contra PostgreSQL real: isolamento de tenant, RLS, gatilhos, CSRF, portal, cabeçalhos |
+| `apps/api` | 55 | Integração contra PostgreSQL real: isolamento de tenant, RLS, gatilhos, CSRF, portal, cabeçalhos |
 
 Os quatro critérios de aceitação em Gherkin da especificação estão mapeados para
 os testes que os verificam em

@@ -186,6 +186,25 @@ export function registrarTratamentoDeErro(
       } satisfies RespostaErro);
     }
 
+    // --- Erro do cliente sinalizado pelo Fastify -----------------------------
+    //
+    // O framework (e os parsers) marcam falhas de requisicao com `statusCode`
+    // 4xx: JSON malformado, corpo maior que o limite, content-type recusado.
+    // Sem este ramo, todos cairiam no 500 abaixo — e um erro de digitacao do
+    // cliente apareceria como falha do servidor, tanto para ele quanto no
+    // monitoramento de quem opera.
+    const statusFastify = (erro as { statusCode?: number }).statusCode;
+    if (typeof statusFastify === 'number' && statusFastify >= 400 && statusFastify < 500) {
+      req.log.info({ status: statusFastify }, 'requisicao malformada');
+
+      return reply.status(statusFastify).send({
+        codigo: 'DADOS_INVALIDOS' satisfies CodigoErro,
+        // Mensagem generica: o texto do framework pode citar detalhe interno.
+        mensagem: 'Requisicao malformada.',
+        correlationId: req.id,
+      } satisfies RespostaErro);
+    }
+
     // --- Qualquer outra coisa: bug ------------------------------------------
     // O detalhe vai INTEIRO para o log (redigido) e NADA para o cliente.
     req.log.error({ err: erro }, 'erro não tratado');

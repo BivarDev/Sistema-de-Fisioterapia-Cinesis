@@ -76,7 +76,8 @@ async function chamar<T>(caminho: string, corpo?: unknown): Promise<T> {
 export function App() {
   const [estado, setEstado] = useState<Estado>('entrando');
   const [painel, setPainel] = useState<Painel | null>(null);
-  const { tema, definirTema, movimento, definirMovimento } = usarPreferencias();
+  const { tema, temaEfetivo, definirTema, movimento, definirMovimento } =
+    usarPreferencias();
 
   /** Carrega o painel. */
   const carregar = useCallback(async () => {
@@ -189,7 +190,10 @@ export function App() {
             />
             <Segmentado
               rotulo="Tema"
-              valor={tema === 'sistema' ? 'claro' : tema}
+              // Quando o tema segue o sistema, o seletor mostra o tema
+              // EFETIVO — nao 'claro' por padrao. Marcar "Claro" numa tela
+              // escura faz o usuario achar que o botao esta quebrado.
+              valor={tema === 'sistema' ? temaEfetivo : tema}
               aoMudar={definirTema}
               opcoes={[
                 { valor: 'claro', rotulo: 'Claro' },

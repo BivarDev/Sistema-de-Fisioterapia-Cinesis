@@ -84,6 +84,35 @@ export async function registrarSeguranca(app: FastifyInstance, config: Config): 
     maxAge: 600,
   });
 
+  // --- Corpo JSON vazio ------------------------------------------------------
+  //
+  // Varias rotas de acao nao tem corpo: `/finalizar`, `/link-portal`, `/sair`.
+  // O parser padrao do Fastify recusa `Content-Type: application/json` com
+  // corpo vazio e devolve 500 — o que quebra qualquer cliente HTTP comum
+  // (curl, Postman, um script de integracao) que sempre manda o content-type.
+  //
+  // O frontend nao cai nisso porque so envia o cabecalho quando ha corpo, mas
+  // depender disso seria uma API fragil por acidente.
+  app.addContentTypeParser(
+    'application/json',
+    { parseAs: 'string' },
+    (_req, corpo, feito) => {
+      const texto = (corpo as string).trim();
+
+      // Corpo ausente vira objeto vazio: as rotas sem payload passam, e as
+      // que exigem campos continuam falhando na validacao Zod — com 422 e o
+      // detalhe por campo, que e a resposta correta.
+      if (texto.length === 0) return feito(null, {});
+
+      try {
+        feito(null, JSON.parse(texto));
+      } catch {
+        // JSON malformado e erro do cliente (400), nao falha do servidor.
+        feito(Object.assign(new SyntaxError('JSON invalido.'), { statusCode: 400 }), undefined);
+      }
+    },
+  );
+
   // --- Limites de tamanho e tempo -------------------------------------------
   // Teto de corpo: 1 MiB cobre qualquer formulário clínico com folga. Upload
   // de mídia tem rota própria com teto maior, validada em `upload.ts`.

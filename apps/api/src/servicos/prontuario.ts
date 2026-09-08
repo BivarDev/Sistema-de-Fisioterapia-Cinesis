@@ -588,8 +588,21 @@ export async function linhaDoTempo(tx: Banco, escopo: Escopo, planoId: string) {
 }
 
 /**
- * Compara a aplicação mais recente de cada teste com a anterior.
- * Alimenta a coluna de delta da tela de avaliação.
+ * Compara a aplicação mais recente de cada teste com a **linha de base** e com
+ * a sessão anterior.
+ *
+ * ## Por que dois deltas, e por que o principal é o da linha de base
+ *
+ * A comparação com a sessão anterior responde "a última conduta funcionou?" —
+ * pergunta legítima, mas ruidosa: entre duas sessões seguidas a variação
+ * costuma ser pequena, e a tela acabava exibindo "0 · estável" para um paciente
+ * que saiu de EVA 7 para EVA 2 ao longo do tratamento.
+ *
+ * A comparação com a primeira aplicação responde "o tratamento está
+ * funcionando?" — que é a tese do produto e o que o gráfico logo acima já
+ * mostra. Esse é o número em destaque.
+ *
+ * O delta da sessão anterior continua disponível, em segundo plano.
  */
 export async function deltasDoPlano(tx: Banco, escopo: Escopo, planoId: string) {
   await buscarPlano(tx, escopo, planoId);
@@ -623,7 +636,13 @@ export async function deltasDoPlano(tx: Banco, escopo: Escopo, planoId: string) 
   return defs.map((d) => {
     const escores = porChave.get(d.chave) ?? [];
     const atual = escores.at(-1) ?? 0;
+
+    // Linha de base: a PRIMEIRA aplicação deste teste no plano.
+    const base = escores.length >= 2 ? (escores[0] as number) : null;
+    // Sessão anterior: a penúltima.
     const anterior = escores.length >= 2 ? (escores.at(-2) as number) : null;
+
+    const definicao = paraDefinicao(d);
 
     return {
       chave: d.chave,
@@ -633,9 +652,12 @@ export async function deltasDoPlano(tx: Banco, escopo: Escopo, planoId: string) 
       fonte: d.fonte,
       licenca: d.licenca,
       atual,
+      inicial: base,
       // `compararEscores` respeita `maiorEhPior` — é o que impede pintar de
       // verde uma piora numa escala invertida como a Oswestry.
-      delta: compararEscores(paraDefinicao(d), atual, anterior),
+      delta: compararEscores(definicao, atual, base),
+      deltaSessaoAnterior: compararEscores(definicao, atual, anterior),
+      aplicacoes: escores.length,
     };
   });
 }

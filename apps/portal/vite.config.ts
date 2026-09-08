@@ -1,41 +1,59 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Configuração do Vite para a portal do paciente.
+ * Configuração do Vite para o portal do paciente.
  *
- * ## Por que os alias apontam para o código-fonte
+ * ## Por que `base: '/portal/'`
  *
- * `@cinesis/ui` e `@cinesis/shared` resolvem para o `src` dos pacotes, não para
- * um `dist`. Isso dá hot reload atravessando o monorepo inteiro: mexer num
- * token do design system atualiza a tela na hora, sem passo de build no meio.
+ * Em produção a própria API serve os dois frontends: a aplicação profissional
+ * na raiz e o portal em `/portal/`. Sem esta `base`, os assets do portal
+ * sairiam como `/assets/index-xxx.js` — o mesmo caminho dos assets da aplicação
+ * profissional. Os dois se sobreporiam e o portal carregaria o bundle errado.
  *
- * ## Por que a forma de array com regex, e não um objeto
+ * ## Por que os alias usam expressão regular
  *
- * O alias em objeto casa por **prefixo**. Com `'@cinesis/ui': '…/src/index.ts'`,
- * o import `@cinesis/ui/estilos.css` vira
- * `…/src/index.ts/estilos.css` — um caminho que não existe, e o build falha
- * com um erro que não diz nada sobre alias.
- *
- * A forma de array aceita expressão regular. Com `/^@cinesis\/ui$/` a
- * correspondência é exata, e a entrada específica do CSS convive com a do
- * pacote sem uma engolir a outra.
+ * O alias em objeto casa por prefixo, e `'@cinesis/ui'` engoliria
+ * `'@cinesis/ui/estilos.css'`, produzindo um caminho inexistente. A forma de
+ * array aceita regex, então a correspondência é exata.
  */
+
+/**
+ * Faz o dev server aceitar o link mágico curto.
+ *
+ * O link enviado ao paciente é `https://<host>/entrar/<token>` — curto, para
+ * caber bem numa mensagem de WhatsApp. Em produção a API resolve isso: ela
+ * serve o `index.html` do portal para qualquer caminho `/entrar/`.
+ *
+ * O dev server do Vite não sabe disso: com `base: '/portal/'`, ele responde
+ * "did you mean /portal/entrar/…?" e o link quebra em desenvolvimento.
+ *
+ * Este plugin reescreve o caminho antes do Vite ver. O resultado é que o mesmo
+ * link funciona em dev e em produção, sem o desenvolvedor precisar decorar dois
+ * formatos — e sem encompridar a URL que o paciente recebe.
+ */
+function linkMagicoEmDesenvolvimento(): Plugin {
+  return {
+    name: 'cinesis-link-magico-dev',
+    // `apply: 'serve'` limita ao dev server: em produção quem roteia é a API.
+    apply: 'serve',
+    configureServer(servidor) {
+      servidor.middlewares.use((req, _res, proximo) => {
+        if (req.url?.startsWith('/entrar/')) {
+          req.url = `/portal${req.url}`;
+        }
+        proximo();
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  /*
-   * O portal e servido em /portal/ pela API em producao.
-   *
-   * Sem esta `base`, os assets sairiam como `/assets/index-xxx.js` — o mesmo
-   * caminho dos assets da aplicacao profissional, servida na raiz. Os dois se
-   * sobreporiam e o portal carregaria o bundle errado.
-   *
-   * Em desenvolvimento o Vite serve na raiz da porta 5174, e a base tambem se
-   * aplica: o endereco vira http://localhost:5174/portal/.
-   */
   base: '/portal/',
 
-  plugins: [react()],
+  plugins: [react(), linkMagicoEmDesenvolvimento()],
+
   resolve: {
     alias: [
       {
@@ -55,6 +73,7 @@ export default defineConfig({
       },
     ],
   },
+
   server: {
     port: 5174,
     // O navegador chama `/api/...` na mesma origem e o Vite repassa para a API.
@@ -64,6 +83,7 @@ export default defineConfig({
       '/api': { target: 'http://127.0.0.1:3333', changeOrigin: true },
     },
   },
+
   build: {
     // Mapas de origem em produção ajudam a depurar um erro relatado pelo
     // usuário. Não expõem nada que o bundle já não exponha.
