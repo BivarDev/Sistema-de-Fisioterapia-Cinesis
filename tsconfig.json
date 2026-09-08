@@ -1,0 +1,11 @@
+{
+  // Projeto raiz: nao compila nada por si, apenas orquestra os subprojetos na ordem correta.
+  // Rode `npm run typecheck` (equivale a `tsc -b`) para checar o monorepo inteiro.
+  "files": [],
+  "references": [
+    { "path": "./packages/shared" },
+    { "path": "./packages/security" },
+    { "path": "./packages/domain" },
+    { "path": "./apps/api" }
+  ]
+}

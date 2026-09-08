@@ -1,0 +1,38 @@
+MIT License
+
+Copyright (c) 2026 BivarDev / Bivar Labs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+AVISO ESPECIFICO SOBRE DADOS DE SAUDE (LGPD)
+
+Este software processa dados pessoais sensiveis (dado de saude, LGPD Art. 5, II
+e Art. 11). Quem instala e opera esta aplicacao e o CONTROLADOR e o OPERADOR
+dos dados dos seus proprios pacientes, para todos os efeitos da Lei 13.709/2018.
+
+BivarDev / Bivar Labs nao hospeda, nao acessa e nao processa nenhum dado
+inserido em instalacoes de terceiros, e nao responde por configuracao
+inadequada, ausencia de backup, vazamento decorrente da infraestrutura do
+operador ou descumprimento de obrigacoes regulatorias (COFFITO 415/2012,
+COFFITO 516/2020, LGPD).
+
+O software e fornecido "COMO ESTA", sem garantia de adequacao a qualquer
+finalidade regulatoria especifica.

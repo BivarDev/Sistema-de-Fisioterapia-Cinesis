@@ -1,0 +1,386 @@
+/*
+ * Design tokens do Cinesis.
+ *
+ * ## Por que oklch e não hex
+ *
+ * O espaço oklch é perceptualmente uniforme: mudar o primeiro número (a
+ * luminosidade) muda o brilho percebido de forma previsível, sem alterar o
+ * matiz. Isso resolve dois problemas concretos deste projeto:
+ *
+ * 1. **Dois temas com a mesma harmonia.** O tema noturno não é o claro
+ *    "invertido": é a mesma paleta com outras luminosidades. Em hex isso vira
+ *    tentativa e erro.
+ * 2. **Contraste previsível.** Diferença de luminosidade em oklch aproxima
+ *    bem o contraste percebido, então dá para escolher pares acessíveis sem
+ *    testar cada um.
+ *
+ * ## Racional das cores
+ *
+ * Verde-petróleo dessaturado como primária: é a cor da reabilitação sem cair
+ * no azul-hospital genérico nem no verde-farmácia. Terracota como acento para
+ * pendência e atenção, porque em contexto clínico o vermelho precisa ficar
+ * reservado para o que é realmente ruim — se tudo é vermelho, nada é.
+ *
+ * Máximo de dois fundos por tela (`--bg` e `--surface2`). Superfície em
+ * repouso usa borda, não sombra; sombra fica para hover de cartão e para o
+ * mockup de celular.
+ */
+
+/* ---------------------------------------------------------------------------
+ * Tema claro (padrão)
+ * ------------------------------------------------------------------------ */
+:root {
+  /* Fundos e superfícies. */
+  --bg: oklch(98.6% 0.007 145);
+  --surface: oklch(100% 0 0);
+  --surface2: oklch(96.6% 0.012 148);
+  --surface3: oklch(94.2% 0.016 150);
+
+  /* Texto, do mais forte ao mais fraco. `--ink3` é o piso: nada abaixo dele. */
+  --ink: oklch(23% 0.022 172);
+  --ink2: oklch(48% 0.018 172);
+  --ink3: oklch(63% 0.014 172);
+
+  /* Linhas e divisores. */
+  --line: oklch(91% 0.012 155);
+  --line2: oklch(85% 0.016 155);
+
+  /* Primária — ação e contexto clínico. */
+  --pri: oklch(47% 0.088 178);
+  --pri-ink: oklch(99% 0.01 178);
+  --pri-soft: oklch(94% 0.032 178);
+  --pri-on-soft: oklch(37% 0.075 178);
+
+  /* Acento — atenção e pendência. Nunca "erro". */
+  --acc: oklch(56% 0.125 52);
+  --acc-soft: oklch(94.5% 0.04 60);
+  --acc-on-soft: oklch(43% 0.11 50);
+
+  /* Bom — evolução, confirmação. */
+  --good: oklch(48% 0.1 152);
+  --good-soft: oklch(94% 0.042 152);
+
+  /* Ruim — só para o que é realmente ruim. */
+  --bad: oklch(50% 0.15 25);
+  --bad-soft: oklch(95% 0.035 25);
+
+  --shadow: 0 1px 2px oklch(25% 0.02 172 / 0.05), 0 10px 30px -14px oklch(25% 0.02 172 / 0.16);
+  --shadow-lg: 0 2px 4px oklch(25% 0.02 172 / 0.05), 0 24px 60px -22px oklch(25% 0.02 172 / 0.24);
+
+  /* Tipografia. Sem Inter, Roboto ou Arial — decisão do design. */
+  --fonte-titulo: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --fonte-corpo: 'Manrope', system-ui, -apple-system, sans-serif;
+  --fonte-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+
+  /* Raios. */
+  --r-chip: 6px;
+  --r-badge: 9px;
+  --r-botao: 11px;
+  --r-cartao: 16px;
+  --r-pill: 999px;
+
+  /*
+   * Duração base das animações.
+   *
+   * Este é o pivô dos dois modos: em `[data-motion='reduzidas']` ele vira
+   * `0.001ms` e TODA animação do sistema para junto, sem precisar reescrever
+   * regra nenhuma.
+   */
+  --dur: 0.85s;
+  --dur-rapida: 0.35s;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ---------------------------------------------------------------------------
+ * Tema noturno
+ *
+ * `:root[data-theme='dark']` cobre a escolha explícita do usuário.
+ * O bloco `prefers-color-scheme` abaixo cobre quem nunca escolheu.
+ * ------------------------------------------------------------------------ */
+:root[data-theme='dark'] {
+  --bg: oklch(17.5% 0.016 178);
+  --surface: oklch(21.5% 0.018 178);
+  --surface2: oklch(25% 0.02 178);
+  --surface3: oklch(29% 0.022 178);
+
+  --ink: oklch(95.5% 0.008 150);
+  --ink2: oklch(74% 0.014 160);
+  --ink3: oklch(60% 0.016 165);
+
+  --line: oklch(30% 0.02 178);
+  --line2: oklch(38% 0.024 178);
+
+  /* No escuro a primária sobe de luminosidade para manter o contraste. */
+  --pri: oklch(74% 0.098 178);
+  --pri-ink: oklch(18% 0.03 178);
+  --pri-soft: oklch(29% 0.042 178);
+  --pri-on-soft: oklch(84% 0.08 178);
+
+  --acc: oklch(74% 0.115 62);
+  --acc-soft: oklch(30% 0.05 55);
+  --acc-on-soft: oklch(86% 0.09 65);
+
+  --good: oklch(74% 0.1 155);
+  --good-soft: oklch(27% 0.045 155);
+
+  --bad: oklch(70% 0.13 28);
+  --bad-soft: oklch(28% 0.05 28);
+
+  --shadow: 0 1px 2px oklch(0% 0 0 / 0.3), 0 10px 30px -14px oklch(0% 0 0 / 0.5);
+  --shadow-lg: 0 2px 4px oklch(0% 0 0 / 0.3), 0 24px 60px -22px oklch(0% 0 0 / 0.6);
+}
+
+/*
+ * Quem nunca escolheu tema segue o sistema operacional.
+ *
+ * O `:not([data-theme='light'])` é o que impede este bloco de sobrepor a
+ * escolha explícita por tema claro de quem está num sistema escuro.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: oklch(17.5% 0.016 178);
+    --surface: oklch(21.5% 0.018 178);
+    --surface2: oklch(25% 0.02 178);
+    --surface3: oklch(29% 0.022 178);
+    --ink: oklch(95.5% 0.008 150);
+    --ink2: oklch(74% 0.014 160);
+    --ink3: oklch(60% 0.016 165);
+    --line: oklch(30% 0.02 178);
+    --line2: oklch(38% 0.024 178);
+    --pri: oklch(74% 0.098 178);
+    --pri-ink: oklch(18% 0.03 178);
+    --pri-soft: oklch(29% 0.042 178);
+    --pri-on-soft: oklch(84% 0.08 178);
+    --acc: oklch(74% 0.115 62);
+    --acc-soft: oklch(30% 0.05 55);
+    --acc-on-soft: oklch(86% 0.09 65);
+    --good: oklch(74% 0.1 155);
+    --good-soft: oklch(27% 0.045 155);
+    --bad: oklch(70% 0.13 28);
+    --bad-soft: oklch(28% 0.05 28);
+    --shadow: 0 1px 2px oklch(0% 0 0 / 0.3), 0 10px 30px -14px oklch(0% 0 0 / 0.5);
+    --shadow-lg: 0 2px 4px oklch(0% 0 0 / 0.3), 0 24px 60px -22px oklch(0% 0 0 / 0.6);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Modo de animação reduzida
+ *
+ * Requisito do produto: duas opções, completas e reduzidas.
+ *
+ * A implementação é uma linha de intenção: `--dur` vai a zero e toda animação
+ * e transição do sistema é encurtada junto. `[data-reveal]` vai direto ao
+ * estado final, para que nada fique invisível esperando um observador que não
+ * vai animar nada.
+ *
+ * `0.001ms` em vez de `0`: alguns navegadores nunca disparam `animationend`
+ * com duração zero, e componentes que esperam esse evento ficariam presos.
+ * ------------------------------------------------------------------------ */
+:root[data-motion='reduzidas'] {
+  --dur: 0.001ms;
+  --dur-rapida: 0.001ms;
+}
+
+:root[data-motion='reduzidas'] *,
+:root[data-motion='reduzidas'] *::before,
+:root[data-motion='reduzidas'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+:root[data-motion='reduzidas'] [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * Base
+ * ------------------------------------------------------------------------ */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  /*
+   * A rolagem suave real é feita pelo Lenis (ver `useScrollSuave`), que dá
+   * controle de easing e integra com o ScrollTrigger do GSAP. Este
+   * `scroll-behavior` é o plano B para quando o JavaScript não carregou.
+   */
+  scroll-behavior: smooth;
+  /* Compensa o cabeçalho fixo ao pular para uma âncora. */
+  scroll-padding-top: 80px;
+}
+
+:root[data-motion='reduzidas'] html {
+  scroll-behavior: auto;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--fonte-corpo);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  /* Evita linha órfã de uma palavra só no fim de parágrafo. */
+  text-wrap: pretty;
+  /* Troca de tema sem piscar. */
+  transition: background var(--dur-rapida) var(--ease), color var(--dur-rapida) var(--ease);
+}
+
+a {
+  color: var(--pri);
+  text-decoration: none;
+  transition: color var(--dur-rapida) var(--ease);
+}
+
+a:hover {
+  color: var(--ink);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/*
+ * Foco visível SEMPRE, em todo elemento interativo.
+ *
+ * Remover o anel de foco por estética torna o sistema inoperável por teclado.
+ * Num sistema de prontuário, isso não é detalhe de acessibilidade: é o que
+ * separa "usável" de "inutilizável" para quem navega sem mouse.
+ */
+:focus-visible {
+  outline: 2px solid var(--pri);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Keyframes compartilhados
+ * ------------------------------------------------------------------------ */
+
+/* Entrada de palavra: usada no H1 da landing, com atraso escalonado. */
+@keyframes palavraEntra {
+  from {
+    opacity: 0;
+    transform: translateY(0.55em);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+/* Entrada de bloco com desfoque. */
+@keyframes desfoqueEntra {
+  from {
+    opacity: 0;
+    filter: blur(9px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* Deriva lenta do fundo do herói. */
+@keyframes deriva {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(2.5%, -3.5%) scale(1.07);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+/* Anel pulsante do marcador principal do mapa de dor. */
+@keyframes anelPulsante {
+  0% {
+    box-shadow: 0 0 0 0 oklch(56% 0.125 52 / 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 14px oklch(56% 0.125 52 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 oklch(56% 0.125 52 / 0);
+  }
+}
+
+/* Brilho que atravessa um texto. Usado com muita parcimônia. */
+@keyframes brilho {
+  0% {
+    background-position: -140% center;
+  }
+  100% {
+    background-position: 240% center;
+  }
+}
+
+/* Flutuação vertical sutil. */
+@keyframes flutua {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Utilitários
+ * ------------------------------------------------------------------------ */
+
+/* Estado inicial dos elementos que entram no scroll. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+[data-reveal='visivel'] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Texto acessível só a leitores de tela. */
+.apenas-leitor-de-tela {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Metadado em monoespaçada: código, timestamp, licença, versão. */
+.mono {
+  font-family: var(--fonte-mono);
+  font-size: 11px;
+  color: var(--ink3);
+  letter-spacing: 0.01em;
+}
+
+/* Rótulo de coluna: caixa alta, muito espaçado, o único texto abaixo de 11px. */
+.rotulo {
+  font-family: var(--fonte-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}

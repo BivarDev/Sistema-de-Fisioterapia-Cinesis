@@ -1,0 +1,118 @@
+# Integração contínua do Cinesis.
+#
+# Roda em cada push e pull request. Falha se qualquer coisa abaixo falhar —
+# não existe verificação "informativa" aqui: uma checagem que não bloqueia é
+# uma checagem que ninguém olha.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancela execuções antigas do mesmo branch: não adianta gastar minuto de CI
+# validando um commit que já foi substituído.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Privilégio mínimo. O padrão do GitHub é bem mais permissivo, e um workflow
+# comprometido com permissão de escrita pode alterar o repositório.
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    name: Tipos, lint e testes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # `npm ci` falha se o lockfile estiver dessincronizado do package.json —
+      # que é justamente o que queremos saber antes de mesclar.
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Verificar tipos
+        run: npm run typecheck
+
+      # Inclui a regra que barra PII em log — exigência da especificação.
+      - name: Lint
+        run: npm run lint
+
+      # Os testes sobem PGlite (PostgreSQL 17 em WebAssembly) dentro do próprio
+      # processo. Não é preciso serviço de banco no runner, e ainda assim RLS,
+      # gatilhos e privilégios são exercitados de verdade.
+      - name: Testes
+        run: npm test
+
+      - name: Build de produção
+        run: npm run build
+
+  seguranca:
+    name: Auditoria de dependências
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # Bloqueia em vulnerabilidade alta ou crítica.
+      #
+      # `moderate` produziria ruído demais para o projeto ser mantido por uma
+      # pessoa — e ruído que ninguém lê é pior que nenhum aviso, porque cria o
+      # hábito de ignorar a saída.
+      - name: npm audit
+        run: npm audit --audit-level=high
+
+  # ---------------------------------------------------------------------------
+  # Verificação que documenta uma regra do projeto
+  # ---------------------------------------------------------------------------
+  segredos:
+    name: Nenhum segredo versionado
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # O `.env` é gitignored, mas "está no .gitignore" e "não está no
+      # repositório" são coisas diferentes: um `git add -f` distraído fura a
+      # regra. Esta checagem transforma a intenção em falha de build.
+      - name: Recusar .env versionado
+        run: |
+          if git ls-files --error-unmatch .env 2>/dev/null; then
+            echo "::error::.env está versionado. Remova-o do índice: git rm --cached .env"
+            exit 1
+          fi
+          echo "Nenhum .env versionado."
+
+      # A chave de exemplo é deliberadamente inválida como chave real. Se ela
+      # aparecer fora do .env.example e da constante que a recusa em produção,
+      # alguém a copiou para onde não devia.
+      - name: Recusar chave de exemplo fora do lugar
+        run: |
+          ocorrencias=$(grep -rl "VFJPUVVFLUVTVEEtQ0hBVkUtRU0tUFJPRFVDQU8" \
+            --exclude-dir=node_modules --exclude-dir=.git . || true)
+          esperado=$'./.env.example\n./apps/api/src/config.ts'
+          if [ "$(echo "$ocorrencias" | sort)" != "$(echo "$esperado" | sort)" ]; then
+            echo "::error::Chave de exemplo encontrada fora de .env.example e config.ts:"
+            echo "$ocorrencias"
+            exit 1
+          fi
+          echo "Chave de exemplo apenas onde deve estar."

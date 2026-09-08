@@ -1,0 +1,30 @@
+{
+  "name": "@cinesis/security",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fundação de segurança do Cinesis: pseudonimização, cifragem de PII, sessão opaca, MFA, auditoria encadeada e redação de log.",
+  "author": "BivarDev",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@cinesis/shared": "*",
+    "@node-rs/argon2": "^2.0.2",
+    "otpauth": "^9.4.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.5"
+  }
+}

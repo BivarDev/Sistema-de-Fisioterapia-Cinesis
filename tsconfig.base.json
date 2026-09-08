@@ -1,0 +1,34 @@
+{
+  // Configuracao TypeScript compartilhada por todos os pacotes do monorepo.
+  // Cada workspace estende este arquivo e sobrescreve apenas o que lhe e proprio.
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2023",                      // Recursos de linguagem suportados pelo Node 20+ e navegadores atuais.
+    "lib": ["ES2023"],                       // Bibliotecas de tipos base (apps de frontend adicionam "DOM").
+    "module": "ESNext",                      // Modulos ES nativos — o projeto inteiro e ESM ("type": "module").
+    "moduleResolution": "Bundler",           // Resolucao moderna: permite importar sem extensao e respeita "exports".
+    "moduleDetection": "force",              // Todo arquivo e tratado como modulo, evitando escopo global acidental.
+    "resolveJsonModule": true,               // Permite `import dados from "./x.json"`.
+    "isolatedModules": true,                 // Garante que cada arquivo compile isolado (exigencia de bundlers).
+    "verbatimModuleSyntax": true,            // `import type` nunca vira import em runtime — evita ciclos e side effects.
+
+    "strict": true,                          // Liga todas as checagens estritas de uma vez.
+    "noUncheckedIndexedAccess": true,        // `arr[i]` passa a ser `T | undefined` — previne acesso fora de faixa.
+    "exactOptionalPropertyTypes": true,      // `{ a?: string }` nao aceita `a: undefined` explicito.
+    "noImplicitOverride": true,              // Sobrescrita de metodo exige a palavra `override`.
+    "noFallthroughCasesInSwitch": true,      // `switch` sem `break` vira erro de compilacao.
+    "noImplicitReturns": true,               // Todo caminho de uma funcao precisa retornar o mesmo tipo.
+    "noUnusedLocals": true,                  // Variavel declarada e nao usada vira erro (codigo morto nao entra).
+    "noUnusedParameters": true,              // Idem para parametros — prefixe com `_` quando for intencional.
+
+    "skipLibCheck": true,                    // Nao checa tipos de dependencias — acelera muito a compilacao.
+    "esModuleInterop": true,                 // Interop com pacotes CommonJS antigos.
+    "forceConsistentCasingInFileNames": true,// Protege contra bugs de caixa entre Windows e Linux.
+    "declaration": true,                     // Gera .d.ts — necessario para pacotes consumidos por outros workspaces.
+    "declarationMap": true,                  // "Ir para definicao" salta para o .ts original, nao para o .d.ts.
+    "sourceMap": true,                       // Stack traces apontam para o codigo fonte.
+    "composite": true,                       // Habilita build incremental por projeto (`tsc -b`).
+    "incremental": true
+  },
+  "exclude": ["node_modules", "dist", "build"]
+}

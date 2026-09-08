@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cinesis — gestao para fisioterapia</title>
+    <meta
+      name="description"
+      content="Sistema livre e gratuito que transforma o tratamento fisioterapeutico numa linha do tempo mensuravel."
+    />
+
+    <!-- Fontes: pre-conexao antes do link do CSS economiza um RTT completo. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!--
+      Evita o "flash" de tema errado.
+
+      O React so monta depois de baixar e avaliar o bundle. Sem este script, a
+      pagina pinta clara por alguns quadros antes de o tema noturno ser aplicado
+      — o que e desagradavel sempre e ofuscante num ambiente escuro.
+
+      Roda antes de qualquer pintura porque esta no `<head>`, e e minusculo.
+    -->
+    <script>
+      (function () {
+        try {
+          var tema = localStorage.getItem('cinesis:tema');
+          var escuro =
+            tema === 'escuro' ||
+            (!tema && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (escuro) document.documentElement.dataset.theme = 'dark';
+          if (tema === 'claro') document.documentElement.dataset.theme = 'light';
+
+          var mov = localStorage.getItem('cinesis:motion');
+          if (!mov) {
+            mov = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+              ? 'reduzidas'
+              : 'completas';
+          }
+          document.documentElement.dataset.motion = mov;
+        } catch (e) {
+          /* localStorage indisponivel: segue com o padrao do CSS. */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="raiz"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

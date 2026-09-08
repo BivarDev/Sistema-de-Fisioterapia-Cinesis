@@ -1,0 +1,40 @@
+/*
+ * Estilos do portal do paciente.
+ *
+ * Quase tudo vem dos tokens compartilhados. As poucas regras aqui existem
+ * porque o portal e mobile-first de verdade: o publico abre num celular, com a
+ * rede ruim, no sofa.
+ */
+
+.titulo-portal {
+  font-family: var(--fonte-titulo);
+  font-size: clamp(26px, 7vw, 34px);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  font-weight: 400;
+  margin: 0;
+}
+
+/*
+ * Alvo de toque de 44px em TODO elemento interativo.
+ *
+ * E o minimo recomendado pelas diretrizes de acessibilidade da Apple e do
+ * Google. Aqui e requisito duro: parte do publico esta em reabilitacao e pode
+ * ter limitacao de destreza fina — exatamente quem mais erra um botao pequeno.
+ */
+button,
+a[role='button'] {
+  min-height: 44px;
+}
+
+/*
+ * 16px no minimo nos campos de formulario.
+ *
+ * O Safari do iOS aplica zoom automatico ao focar um input com fonte menor que
+ * 16px, o que desloca o layout inteiro e assusta quem nao esperava.
+ */
+input,
+textarea,
+select {
+  font-size: 16px;
+}

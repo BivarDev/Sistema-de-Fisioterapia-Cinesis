@@ -1,0 +1,288 @@
+/*
+ * Estilos específicos da aplicação profissional.
+ *
+ * O grosso do visual vem de `@cinesis/ui/estilos.css` (tokens, temas e modos
+ * de animação). Aqui ficam só o layout de aplicação e as regras responsivas
+ * que não fazem sentido no design system compartilhado.
+ *
+ * ## Responsividade: media queries, não listener de JavaScript
+ *
+ * O protótipo original media a largura em JS porque rodava dentro de um painel
+ * de preview. Na implementação real isso seria um erro: media query não custa
+ * re-render, funciona antes do JavaScript carregar e não descasa do layout
+ * durante a montagem.
+ */
+
+/* ---------------------------------------------------------------------------
+ * Landing
+ * ------------------------------------------------------------------------ */
+
+.titulo-heroi {
+  font-family: var(--fonte-titulo);
+  /* `clamp` cobre de celular a monitor grande sem uma media query sequer. */
+  font-size: clamp(40px, 6vw, 84px);
+  line-height: 1.02;
+  letter-spacing: -0.022em;
+  font-weight: 400;
+  margin: 0;
+  max-width: 18ch;
+}
+
+.subtitulo-heroi {
+  /* 60ch é o limite em que o olho ainda encontra a linha seguinte sem esforço. */
+  max-width: 60ch;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink2);
+  margin: 0;
+}
+
+.titulo-secao {
+  font-family: var(--fonte-titulo);
+  font-size: clamp(30px, 3.6vw, 48px);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  font-weight: 400;
+  margin: 0 0 14px;
+}
+
+@media (max-width: 900px) {
+  .grade-seguranca {
+    grid-template-columns: 1fr !important;
+    gap: 34px !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Layout da aplicação: sidebar fixa + cabeçalho sticky + conteúdo com scroll
+ * próprio
+ * ------------------------------------------------------------------------ */
+
+.app-layout {
+  display: grid;
+  grid-template-columns: 238px minmax(0, 1fr);
+  /* `100dvh` em vez de `100vh`: no celular, `vh` inclui a barra de endereço
+     que some ao rolar, e o rodapé ficaria cortado. */
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.app-sidebar {
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  /* A barra lateral rola de forma independente do conteúdo. */
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-principal {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Sem isto, uma tabela larga estoura a grade inteira. */
+  overflow: hidden;
+}
+
+.app-cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.app-conteudo {
+  overflow-y: auto;
+  padding: 26px;
+  flex: 1;
+}
+
+/* Item de navegação da barra lateral. */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px 9px 18px;
+  border-radius: var(--r-botao);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink2);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  position: relative;
+  transition: background var(--dur-rapida) var(--ease), color var(--dur-rapida) var(--ease);
+}
+
+.nav-item:hover {
+  background: var(--surface2);
+  color: var(--ink);
+}
+
+.nav-item[aria-current='page'] {
+  background: var(--pri-soft);
+  color: var(--pri-on-soft);
+}
+
+/* Barra vertical do item ativo. Entra por opacidade, não por largura — animar
+   largura força relayout a cada quadro. */
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 15px;
+  border-radius: 2px;
+  background: var(--pri);
+  opacity: 0;
+  transition: opacity var(--dur-rapida) var(--ease);
+}
+
+.nav-item[aria-current='page']::before {
+  opacity: 1;
+}
+
+.nav-grupo {
+  font-family: var(--fonte-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  padding: 16px 18px 6px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Tabelas
+ * ------------------------------------------------------------------------ */
+
+.tabela {
+  border: 1px solid var(--line);
+  border-radius: var(--r-cartao);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.tabela-cabecalho,
+.tabela-linha {
+  display: grid;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+}
+
+.tabela-cabecalho {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--line);
+}
+
+.tabela-linha {
+  border-bottom: 1px solid var(--line);
+  transition: background var(--dur-rapida) var(--ease);
+}
+
+.tabela-linha:last-child {
+  border-bottom: none;
+}
+
+.tabela-linha[data-clicavel='true']:hover {
+  background: var(--surface2);
+  cursor: pointer;
+}
+
+/* ---------------------------------------------------------------------------
+ * Cartões e hover
+ * ------------------------------------------------------------------------ */
+
+.cartao-interativo:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.botao:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.botao:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.botao:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------------------
+ * Responsivo
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 1080px) {
+  .app-layout {
+    grid-template-columns: 186px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 880px) {
+  /* A barra lateral vira uma faixa horizontal rolável no topo. Esconder a
+     navegação atrás de um menu obrigaria dois toques para cada troca de tela. */
+  .app-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .app-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .nav-grupo {
+    display: none; /* Os rótulos de grupo não cabem na horizontal. */
+  }
+
+  .nav-item {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .app-conteudo {
+    padding: 18px 16px;
+  }
+
+  /* Tabelas colapsam para duas colunas; as demais viram linha empilhada. */
+  .tabela-cabecalho {
+    display: none;
+  }
+
+  .tabela-linha {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .tabela-linha {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Conteúdo largo (tabela, gráfico, bloco de código) rola dentro do próprio
+   container. O `body` nunca rola na horizontal. */
+.rolagem-horizontal {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

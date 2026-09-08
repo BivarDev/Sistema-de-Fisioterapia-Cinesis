@@ -1,0 +1,34 @@
+# Dependencias
+node_modules/
+.pnp/
+.pnp.js
+
+# Artefatos de build
+dist/
+build/
+*.tsbuildinfo
+.vite/
+
+# Segredos e configuracao local — NUNCA versionar
+.env
+.env.*
+!.env.example
+
+# Banco de dados local embutido (PGlite) e uploads de desenvolvimento
+.data/
+uploads/
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Sistema operacional e editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Cobertura de testes
+coverage/

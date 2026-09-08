@@ -1,0 +1,36 @@
+{
+  "name": "cinesis",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cinesis — sistema de gestao para fisioterapia. Nucleo clinico livre e gratuito.",
+  "author": "BivarDev",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "dev": "node scripts/dev.mjs",
+    "dev:api": "npm run dev -w @cinesis/api",
+    "dev:web": "npm run dev -w @cinesis/web",
+    "dev:portal": "npm run dev -w @cinesis/portal",
+    "typecheck": "tsc -b --pretty",
+    "lint": "eslint .",
+    "test": "npm run test -w @cinesis/security && npm run test -w @cinesis/domain && npm run test -w @cinesis/api",
+    "db:push": "npm run db:push -w @cinesis/api",
+    "db:seed": "npm run db:seed -w @cinesis/api",
+    "check": "npm run typecheck && npm run lint && npm run test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "@types/node": "^22.13.4",
+    "eslint": "^9.20.1",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.0"
+  }
+}

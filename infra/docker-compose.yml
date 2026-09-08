@@ -1,0 +1,125 @@
+# Cinesis — implantação de um comando.
+#
+#   cp .env.example .env      # e gere a chave, ver o próprio arquivo
+#   docker compose -f infra/docker-compose.yml up -d
+#
+# Se subir exigir mais que isso, o projeto falhou no próprio objetivo: o
+# público-alvo é fisioterapeuta autônomo, sem equipe de infraestrutura.
+
+name: cinesis
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL
+  # ---------------------------------------------------------------------------
+  banco:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cinesis
+      # Vem do .env. A aplicação recusa subir em produção com valor de exemplo.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+      POSTGRES_DB: cinesis
+      # `scram-sha-256` em vez do `md5` padrão: md5 é quebrável e continua sendo
+      # o default de muitas imagens por compatibilidade.
+      POSTGRES_INITDB_ARGS: '--auth-host=scram-sha-256'
+    volumes:
+      - dados-banco:/var/lib/postgresql/data
+    # SEM `ports`. O banco fala apenas com a API, pela rede interna do Compose.
+    # Publicar 5432 no host é o caminho mais curto para um Postgres exposto na
+    # internet — que é como boa parte dos vazamentos de fato acontece.
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U cinesis -d cinesis']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    # A API espera o banco estar SAUDÁVEL, não apenas iniciado — `depends_on`
+    # sem `condition` só garante ordem de criação do contêiner.
+
+  # ---------------------------------------------------------------------------
+  # Redis — sessões opacas revogáveis
+  # ---------------------------------------------------------------------------
+  sessoes:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # `--save ''` desliga a persistência em disco.
+    #
+    # Sessão é dado efêmero por natureza: perder o Redis num restart significa
+    # que todo mundo faz login de novo, o que é aceitável. Persistir gravaria
+    # hashes de sessão em disco sem necessidade, ampliando a superfície.
+    #
+    # `--maxmemory-policy noeviction` impede o Redis de descartar sessões
+    # silenciosamente sob pressão de memória — melhor recusar a escrita e a
+    # falha aparecer do que derrubar a sessão de alguém no meio do atendimento.
+    command: >
+      redis-server
+      --save ''
+      --appendonly no
+      --maxmemory 128mb
+      --maxmemory-policy noeviction
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Aplicação — API + frontends servidos estaticamente
+  # ---------------------------------------------------------------------------
+  cinesis:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      banco:
+        condition: service_healthy
+      sessoes:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3333
+      # `0.0.0.0` dentro do contêiner: o isolamento vem da rede do Compose e da
+      # publicação de porta abaixo, não do endereço de escuta.
+      HOST: 0.0.0.0
+      DATABASE_URL: postgres://cinesis:${POSTGRES_PASSWORD}@banco:5432/cinesis
+      REDIS_URL: redis://sessoes:6379
+      # Obrigatórias em produção — a aplicação recusa subir sem elas, ou com a
+      # chave de exemplo. Ver apps/api/src/config.ts.
+      CINESIS_KEY_V1: ${CINESIS_KEY_V1:?gere uma chave; ver .env.example}
+      # Chave anterior, durante uma rotação. Descomente ao rotacionar.
+      # CINESIS_KEY_V2: ${CINESIS_KEY_V2}
+      ORIGENS_PERMITIDAS: ${ORIGENS_PERMITIDAS:?defina as origens https}
+      PORTAL_URL: ${PORTAL_URL:?defina a URL pública do portal}
+      LOG_NIVEL: info
+    volumes:
+      # Mídia clínica em volume nomeado: sobrevive à recriação do contêiner.
+      - midia:/app/uploads
+    ports:
+      # Publica só na interface local. Coloque um proxy reverso com TLS à
+      # frente (Caddy, nginx, Traefik) — a aplicação não termina TLS sozinha, e
+      # `Secure` no cookie de sessão exige HTTPS de verdade.
+      - '127.0.0.1:3333:3333'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3333/api/saude').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    # Endurecimento do contêiner.
+    security_opt:
+      - no-new-privileges:true
+    read_only: false # `uploads` precisa de escrita.
+    tmpfs:
+      - /tmp
+
+volumes:
+  dados-banco:
+  midia:

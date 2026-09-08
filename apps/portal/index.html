@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      `viewport-fit=cover` + `maximum-scale` ausente de proposito.
+
+      Bloquear o zoom (`maximum-scale=1, user-scalable=no`) e comum e e um erro
+      de acessibilidade: impede quem tem baixa visao de ampliar o texto. Num app
+      que orienta exercicio para pessoas em reabilitacao, muitas idosas, isso
+      seria especialmente ruim.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Seu tratamento — Cinesis</title>
+    <meta name="description" content="Seus exercicios e seu progresso." />
+
+    <!--
+      `noindex` e obrigatorio aqui.
+
+      O portal e acessado por link magico e mostra dado de saude. Um buscador
+      indexando qualquer pagina dele seria vazamento — e o `noarchive` impede
+      que uma copia em cache sobreviva a expiracao do link.
+    -->
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <!-- Nenhum link para fora vaza a URL do portal (que carrega o token). -->
+    <meta name="referrer" content="no-referrer" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      /* Mesmo anti-flash da aplicacao profissional. Ver `apps/web/index.html`. */
+      (function () {
+        try {
+          var tema = localStorage.getItem('cinesis:tema');
+          if (tema === 'escuro') document.documentElement.dataset.theme = 'dark';
+          else if (tema === 'claro') document.documentElement.dataset.theme = 'light';
+          else if (window.matchMedia('(prefers-color-scheme: dark)').matches)
+            document.documentElement.dataset.theme = 'dark';
+
+          var mov = localStorage.getItem('cinesis:motion');
+          if (!mov)
+            mov = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+              ? 'reduzidas'
+              : 'completas';
+          document.documentElement.dataset.motion = mov;
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="raiz"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
