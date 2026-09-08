@@ -165,7 +165,9 @@ export function Contador({
   return (
     // `aria-label` com o valor final: um leitor de tela não deve anunciar
     // "12... 34... 56..." enquanto o número sobe.
-    <span ref={ref} className={className} aria-label={`${valor}${sufixo}`}>
+    // `numero` liga os dígitos tabulares: um contador que muda de largura
+    // enquanto conta faz o layout tremer.
+    <span ref={ref} className={`numero ${className}`} aria-label={`${valor}${sufixo}`}>
       <span aria-hidden="true">
         {atual}
         {sufixo}

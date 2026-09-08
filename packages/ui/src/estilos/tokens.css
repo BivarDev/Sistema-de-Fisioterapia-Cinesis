@@ -67,9 +67,39 @@
   --shadow: 0 1px 2px oklch(25% 0.02 172 / 0.05), 0 10px 30px -14px oklch(25% 0.02 172 / 0.16);
   --shadow-lg: 0 2px 4px oklch(25% 0.02 172 / 0.05), 0 24px 60px -22px oklch(25% 0.02 172 / 0.24);
 
-  /* Tipografia. Sem Inter, Roboto ou Arial — decisão do design. */
+  /*
+   * Tipografia. Sem Inter, Roboto ou Arial — decisão do design.
+   *
+   * ## Por que IBM Plex Sans no corpo
+   *
+   * A escolha original era Manrope. Trocada depois de renderizar as duas lado a
+   * lado com as strings reais do sistema, nos tamanhos reais, sobre o fundo
+   * noturno real. O que a comparação mostrou:
+   *
+   * 1. **Diferenciação de caracteres — o motivo forte.** Manrope é geométrica:
+   *    em `1 l I |` os quatro glifos viram traços verticais praticamente
+   *    idênticos. Este sistema exibe código de paciente (`PC-A65C`), registro
+   *    profissional (`CREFITO-3 12345-F`) e valor clínico o tempo todo; ler
+   *    `l` onde está `1` não é deselegante, é erro de leitura de dado de
+   *    saúde. A Plex Sans é humanista: o `1` tem base, o `l` tem cauda, o `I`
+   *    tem serifa. Os quatro se distinguem sem esforço.
+   * 2. **Texto pequeno sobre fundo escuro.** Os metadados vivem em 11–12px em
+   *    `--ink3`. O contraste de traço da Manrope é alto para uma sans de
+   *    interface, e nesse tamanho o traço fino some no modo noturno. A Plex
+   *    tem traço mais uniforme e aberturas maiores.
+   * 3. **Coerência com a monoespaçada.** IBM Plex Mono já era a fonte dos
+   *    metadados. A família foi desenhada como sistema — mesma altura-x, mesmo
+   *    esqueleto — então o texto e o código ao lado dele parecem a mesma voz,
+   *    em vez de duas fontes convivendo por acaso.
+   *
+   * O que a troca **não** resolveu, e é bom dizer para ninguém atribuir mérito
+   * errado: o alinhamento das colunas de número. Isso veio do
+   * `font-variant-numeric: tabular-nums` mais abaixo neste arquivo, e teria
+   * funcionado na Manrope também — as duas têm a feature `tnum`. O problema
+   * era não estar ligada, não a família.
+   */
   --fonte-titulo: 'Instrument Serif', Georgia, 'Times New Roman', serif;
-  --fonte-corpo: 'Manrope', system-ui, -apple-system, sans-serif;
+  --fonte-corpo: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
   --fonte-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Consolas, monospace;
 
   /* Raios. */
@@ -223,8 +253,10 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--fonte-corpo);
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: 14.5px;
+  /* 1.6 em vez de 1.55: a Plex Sans tem altura-x maior que a Manrope, então
+     precisa de um pouco mais de ar entre as linhas para não parecer densa. */
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   /* Evita linha órfã de uma palavra só no fim de parágrafo. */
   text-wrap: pretty;
@@ -366,6 +398,25 @@ button {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/*
+ * Números tabulares.
+ *
+ * `tnum` faz todo dígito ocupar a mesma largura, então uma coluna de
+ * porcentagens alinha na vertical. Sem isso, "77%" fica visivelmente mais
+ * estreito que "23%" e o olho precisa ler número a número em vez de varrer.
+ *
+ * Aplicado no que de fato forma coluna: tabelas, métricas e números grandes.
+ * NÃO no texto corrido — ali a largura fixa abre buracos feios em datas e
+ * valores no meio da frase.
+ */
+.tabela,
+.tabela-linha,
+.tabela-cabecalho,
+.numero {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
 /* Metadado em monoespaçada: código, timestamp, licença, versão. */

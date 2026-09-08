@@ -260,8 +260,9 @@ export function BarrasHorizontais({
             }}
           >
             <span style={{ fontWeight: 600 }}>{item.rotulo}</span>
-            {/* O número ao lado da barra: a informação existe sem depender da cor. */}
-            <span className="mono" style={{ color: 'var(--ink2)' }}>
+            {/* O número ao lado da barra: a informação existe sem depender da
+                cor. `numero` alinha os dígitos entre as linhas da lista. */}
+            <span className="mono numero" style={{ color: 'var(--ink2)' }}>
               {item.valor}%
             </span>
           </div>

@@ -12,7 +12,7 @@
     -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Seu tratamento — Cinesis</title>
-    <meta name="description" content="Seus exercicios e seu progresso." />
+    <meta name="description" content="Seus exercícios e seu progresso." />
 
     <!--
       `noindex` e obrigatorio aqui.
@@ -25,10 +25,21 @@
     <!-- Nenhum link para fora vaza a URL do portal (que carrega o token). -->
     <meta name="referrer" content="no-referrer" />
 
+    <!--
+      Icone da aba, em SVG dentro de um data URI.
+
+      Inline por dois motivos: nao gera a requisicao extra do favicon.ico
+      (que sem isto responde 404) e nao depende de um binario no repositorio.
+      No portal ha um terceiro: um data URI nao sai da origem, entao nao
+      existe requisicao externa que revele que este dispositivo abriu o
+      portal de um paciente.
+    -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d6b6b'/%3E%3Cpath d='M7 23C11 23 12 9 19 9' stroke='%23d9f2ee' stroke-width='2.6' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='23.5' cy='9' r='2.6' fill='%23e8934a'/%3E%3C/svg%3E" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
 

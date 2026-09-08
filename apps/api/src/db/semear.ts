@@ -107,13 +107,54 @@ export async function semearCatalogo(db: Banco): Promise<{ testes: number; exerc
   return { testes, exercicios: exs };
 }
 
-/** Pacientes fictícios da demonstração. */
+/**
+ * Pacientes fictícios da demonstração.
+ *
+ * Três campos distintos de propósito, porque na tela do plano eles aparecem em
+ * sequência e repetir o mesmo texto três vezes faria a demonstração parecer um
+ * molde preenchido:
+ *
+ * - `queixa` — como o **paciente** descreve o problema. Vira o título do plano.
+ * - `diagnostico` — a **hipótese clínica**, com lateralidade e classificação.
+ * - `objetivo` — o que este tratamento específico pretende alcançar, em termos
+ *   de função, não de exame.
+ */
 const PACIENTES_DEMO = [
-  { nome: 'Marina Alencar', nascimento: '1989-04-12', queixa: 'Lombalgia mecânica crônica' },
-  { nome: 'Rogério Tavares', nascimento: '1972-11-03', queixa: 'Pós-operatório de LCA — joelho direito' },
-  { nome: 'Cláudia Bernardes', nascimento: '1958-07-25', queixa: 'Síndrome do manguito rotador' },
-  { nome: 'Ivo Nascimento', nascimento: '1994-01-30', queixa: 'Tendinopatia patelar' },
-  { nome: 'Selma Prado', nascimento: '1966-09-18', queixa: 'Cervicalgia postural' },
+  {
+    nome: 'Marina Alencar',
+    nascimento: '1989-04-12',
+    queixa: 'Lombalgia mecânica crônica',
+    diagnostico: 'Dor lombar inespecífica persistente, sem sinais de alerta',
+    objetivo: 'Voltar a sentar 8 horas no trabalho sem dor que exija pausa.',
+  },
+  {
+    nome: 'Rogério Tavares',
+    nascimento: '1972-11-03',
+    queixa: 'Pós-operatório de LCA — joelho direito',
+    diagnostico: 'Reconstrução de LCA à direita, 6ª semana de pós-operatório',
+    objetivo: 'Recuperar extensão completa e subir escada sem apoio no corrimão.',
+  },
+  {
+    nome: 'Cláudia Bernardes',
+    nascimento: '1958-07-25',
+    queixa: 'Síndrome do manguito rotador',
+    diagnostico: 'Tendinopatia do supraespinhal à direita, sem ruptura completa',
+    objetivo: 'Alcançar a prateleira alta da cozinha e dormir sobre o lado direito.',
+  },
+  {
+    nome: 'Ivo Nascimento',
+    nascimento: '1994-01-30',
+    queixa: 'Tendinopatia patelar',
+    diagnostico: 'Tendinopatia patelar à esquerda, fase reativa',
+    objetivo: 'Retomar corrida de 5 km sem dor no dia seguinte.',
+  },
+  {
+    nome: 'Selma Prado',
+    nascimento: '1966-09-18',
+    queixa: 'Cervicalgia postural',
+    diagnostico: 'Cervicalgia mecânica associada a postura mantida no trabalho',
+    objetivo: 'Trabalhar o turno inteiro sem cefaleia no fim do dia.',
+  },
 ];
 
 /**
@@ -241,8 +282,8 @@ export async function semearDemonstracao(
       pacienteId,
       profissionalId: fisioId,
       titulo: dados.queixa,
-      diagnostico: dados.queixa,
-      objetivo: 'Reduzir dor e restaurar função para as atividades do dia a dia.',
+      diagnostico: dados.diagnostico,
+      objetivo: dados.objetivo,
       status: 'ativo',
       fase: indice === 0 ? 'Fase 2 — fortalecimento' : 'Fase 1 — controle de sintomas',
       sessoesPrevistas: 12,
