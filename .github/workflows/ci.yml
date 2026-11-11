@@ -29,9 +29,9 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -63,9 +63,9 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -89,7 +89,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # O `.env` é gitignored, mas "está no .gitignore" e "não está no
       # repositório" são coisas diferentes: um `git add -f` distraído fura a
@@ -105,9 +105,13 @@ jobs:
       # A chave de exemplo é deliberadamente inválida como chave real. Se ela
       # aparecer fora do .env.example e da constante que a recusa em produção,
       # alguém a copiou para onde não devia.
+      #
+      # O padrão é montado em duas metades. Escrito inteiro, ele faria este
+      # próprio arquivo aparecer como ocorrência e a checagem falharia sempre.
       - name: Recusar chave de exemplo fora do lugar
         run: |
-          ocorrencias=$(grep -rl "VFJPUVVFLUVTVEEtQ0hBVkUtRU0tUFJPRFVDQU8" \
+          padrao="VFJPUVVFLUVTVEEt""Q0hBVkUtRU0tUFJPRFVDQU8"
+          ocorrencias=$(grep -rl "$padrao" \
             --exclude-dir=node_modules --exclude-dir=.git . || true)
           esperado=$'./.env.example\n./apps/api/src/config.ts'
           if [ "$(echo "$ocorrencias" | sort)" != "$(echo "$esperado" | sort)" ]; then
