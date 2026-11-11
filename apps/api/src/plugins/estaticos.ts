@@ -102,12 +102,15 @@ export async function registrarEstaticos(
       // `index.html` nao, senao uma atualizacao nunca chegaria ao navegador.
       maxAge: '1y',
       immutable: true,
-      setHeaders(res, caminho) {
+      // Desde o @fastify/static 10, `setHeaders` recebe o `reply` do Fastify
+      // e roda DEPOIS dos cabecalhos do `send` — entao o `no-cache` abaixo
+      // de fato substitui o `max-age=1y` que o `maxAge` acabou de escrever.
+      setHeaders(reply, caminho) {
         if (caminho.endsWith('index.html')) {
-          res.setHeader('Cache-Control', 'no-cache');
+          reply.header('Cache-Control', 'no-cache');
           // O portal mostra dado de saude por link magico. Nenhum buscador
           // deve indexa-lo, e nenhuma copia em cache deve sobreviver ao link.
-          res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+          reply.header('X-Robots-Tag', 'noindex, nofollow, noarchive');
         }
       },
     });
@@ -121,9 +124,9 @@ export async function registrarEstaticos(
       decorateReply: false,
       maxAge: '1y',
       immutable: true,
-      setHeaders(res, caminho) {
+      setHeaders(reply, caminho) {
         if (caminho.endsWith('index.html')) {
-          res.setHeader('Cache-Control', 'no-cache');
+          reply.header('Cache-Control', 'no-cache');
         }
       },
     });

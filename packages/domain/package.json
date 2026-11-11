@@ -8,8 +8,20 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
-  "scripts": { "build": "tsc -b", "test": "vitest run" },
-  "dependencies": { "@cinesis/shared": "*" },
-  "devDependencies": { "vitest": "^3.0.5" }
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cinesis/shared": "*"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.12"
+  }
 }
