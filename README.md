@@ -247,7 +247,8 @@ precisa ser legível por quem vai instalar e manter.
 
 ## Licença e responsabilidade
 
-**MIT.** Ver [LICENSE](LICENSE).
+**MIT.** Ver [LICENSE](LICENSE) e o
+[aviso específico sobre dados de saúde](AVISO-LGPD.md).
 
 Este software processa **dados pessoais sensíveis** (dado de saúde, LGPD
 Art. 5º, II e Art. 11).
